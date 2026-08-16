@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geng Matematik Tahun 5</title>
+    <style>
+        /* --- GAYA VISUAL PASTEL & COMEL (CSS) --- */
+        :root {
+            --bg-color: #f0faff; /* Biru cair pastel */
+            --card-color: #ffffff;
+            --primary-color: #88d8b0; /* Hijau mint */
+            --secondary-color: #ffcc5c; /* Kuning lembut */
+            --accent-color: #ff6f69; /* Merah jambu lembut */
+            --text-color: #4a4a4a;
+            --shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif; /* Perlukan font comel */
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* Elak scrollbar pada iPad */
+        }
+
+        #game-container {
+            background-color: var(--card-color);
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--text-color);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        #stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        /* --- KAWASAN SOALAN --- */
+        #question-area {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px dashed #ddd;
+            margin-bottom: 30px;
+        }
+
+        #question-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        /* Gaya khas untuk paparan Pecahan */
+        .fraction {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 5px;
+        }
+        .num {
+            border-bottom: 2px solid var(--primary-color);
+            padding: 0 3px;
+        }
+        .den {
+            padding: 0 3px;
+        }
+
+        /* --- PILIHAN JAWAPAN (BUTANG) --- */
+        #options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            -webkit-tap-highlight-color: transparent; /* Elak kotak biru bila tekan di iPad */
+        }
+
+        .option-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Gaya untuk maklum balas */
+        .correct {
+            background-color: #66bb6a !important; /* Hijau terang */
+            animation: pulse 0.5s;
+        }
+
+        .wrong {
+            background-color: #ef5350 !important; /* Merah terang */
+            animation: shake 0.4s;
+        }
+
+        /* --- SKRIN TAMAT --- */
+        #end-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #restart-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        /* --- ANIMASI --- */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+    <!-- Import Font Comel dari Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>Geng Matematik 5 🧠</h1>
+        
+        <div id="stats-bar">
+            <span id="score-display">Markah: 0</span>
+            <span id="q-count-display">Soalan: 1/5</span>
+        </div>
+
+        <div id="question-area">
+            <p id="question-text"></p>
+        </div>
+
+        <div id="options-container">
+            <!-- Butang jawapan akan dijana oleh JS di sini -->
+        </div>
+
+        <!-- Skrin Tamat (Tersembunyi pada permulaan) -->
+        <div id="end-screen">
+            <h2>Tahniah, Bestie! 🎉</h2>
+            <p id="final-score-text"></p>
+            <button id="restart-btn" onclick="startGame()">Main Semula</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- LOGIK GAME (JAVASCRIPT) --- */
+
+        // 1. Data Soalan Matematik Tahun 5 (Pecahan & Operasi Bercampur)
+        const mathQuestions = [
+            {
+                // Soalan Pecahan Mudah (Penambahan)
+                question: '1/4 + 2/4 =',
+                options: ['3/4', '3/8', '2/4', '1/2'],
+                answer: '3/4',
+                type: 'fraction' // Untuk gaya pecahan khas
+            },
+            {
+                // Operasi Bercampur (+ dan -)
+                question: '450 + 120 - 50 =',
+                options: ['520', '420', '550', '620'],
+                answer: '520',
+                type: 'text'
+            },
+            {
+                // Penukaran Nombor Bercampur
+                question: 'Tukarkan 1 1/2 kepada pecahan tak wajar:',
+                options: ['3/2', '2/2', '4/2', '1/2'],
+                answer: '3/2',
+                type: 'text'
+            },
+            {
+                // Operasi Bercampur (x dan ÷)
+                question: '12 x 5 ÷ 10 =',
+                options: ['6', '60', '12', '5'],
+                answer: '6',
+                type: 'text'
+            },
+            {
+                // Pecahan Setara
+                question: 'Manakah pecahan setara bagi 1/2?',
+                options: ['2/4', '2/3', '1/3', '3/5'],
+                answer: '2/4',
+                type: 'text'
+            }
+        ];
+
+        // 2. Pembolehubah Game
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const totalQuestions = mathQuestions.length;
+
+        // 3. Elemen UI
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const qCountDisplay = document.getElementById('q-count-display');
+        const endScreen = document.getElementById('end-screen');
+        const finalScoreText = document.getElementById('final-score-text');
+
+        // 4. Fungsi Mengubah Teks Biasa kepada Format Pecahan HTML
+        function formatFraction(text) {
+            return text.replace(/(\d+)\/(\d+)/g, '<span class="fraction"><span class="num">$1</span><span class="den">$2</span></span>');
+        }
+
+        // 5. Fungsi Memulakan Game / Reset
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            endScreen.style.display = 'none';
+            scoreDisplay.textContent = 'Markah: 0';
+            loadQuestion();
+        }
+
+        // 6. Fungsi Memaparkan Soalan Semasa
+        function loadQuestion() {
+            const currentQuestion = mathQuestions[currentQuestionIndex];
+            
+            // Kemaskini No. Soalan
+            qCountDisplay.textContent = `Soalan: ${currentQuestionIndex + 1}/${totalQuestions}`;
+
+            // Papar Teks Soalan (Guna format pecahan jika perlu)
+            if (currentQuestion.type === 'fraction') {
+                questionText.innerHTML = formatFraction(currentQuestion.question);
+            } else {
+                questionText.textContent = currentQuestion.question;
+            }
+
+            // Bersihkan butang lama dan jana butang baharu
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.classList.add('option-btn');
+                
+                // Format teks pilihan (guna format pecahan jika teks mengandungi '/')
+                if (option.includes('/')) {
+                     button.innerHTML = formatFraction(option);
+                     // Simpan nilai asal untuk perbandingan
+                     button.dataset.value = option; 
+                } else {
+                    button.textContent = option;
+                    button.dataset.value = option;
+                }
+                
+                button.onclick = () => checkAnswer(button, option);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // 7. Fungsi Menyemak Jawapan
+        function checkAnswer(selectedButton, selectedAnswer) {
+            const currentQuestion = mathQuestions[currentQuestionIndex];
+
+            // Matikan semua butang supaya tak boleh tekan dua kali
+            const allButtons = document.querySelectorAll('.option-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            // Semak betul/salah
+            if (selectedAnswer === currentQuestion.answer) {
+                // Betul!
+                selectedButton.classList.add('correct');
+                score += 10;
+                scoreDisplay.textContent = `Markah: ${score}`;
+            } else {
+                // Salah!
+                selectedButton.classList.add('wrong');
+                // Tunjukkan jawapan betul
+                allButtons.forEach(btn => {
+                    if (btn.dataset.value === currentQuestion.answer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            // Tunggu 1.5 saat sebelum ke soalan seterusnya
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < totalQuestions) {
+                    loadQuestion();
+                } else {
+                    showEndScreen();
+                }
+            }, 1500);
+        }
+
+        // 8. Fungsi Memaparkan Skrin Tamat
+        function showEndScreen() {
+            finalScoreText.textContent = `Kamu berjaya mendapat ${score} markah!`;
+            endScreen.style.display = 'flex';
+        }
+
+        // 9. Mula Game Bila Halaman Dimuatkan
+        startGame();
+
+    </script>
+</body>
+</html>
